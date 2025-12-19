@@ -8,7 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="fade-in-ready">
+
   <video autoplay muted loop id="bg-video">
     <source src="assets/tokyo-rain.mp4" type="video/mp4">
   </video>
@@ -23,15 +24,23 @@
     </ul>
   </nav>
 
-  <header class="hero fade-section visible">
+  <header class="hero fade-section fade-in-ready">
     <h1 class="gradient-title">Boxcutters+</h1>
-    <p class="welcome-glow">Welcome to our Discord community</p>
-    <a href="https://discord.gg/gpFaYwQCse" class="cyber-btn">Join Now</a>
+
+    <p class="welcome-glow header-welcome">
+      Welcome to our Discord community
+      <img src="assets/Discord-loading.gif" alt="Discord loading">
+    </p>
+
+    <div>
+      <a href="https://discord.gg/gpFaYwQCse" class="cyber-btn nav-link">Join Now</a>
+    </div>
   </header>
 
   <footer>
     <p>© 2025 Boxcutters+ Discord</p>
   </footer>
+
   <script src="script.js"></script>
 </body>
 </html>

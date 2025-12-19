@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
   <title>Games - Boxcutters+</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="fade-in-ready">
+
   <video autoplay muted loop id="bg-video">
     <source src="assets/tokyo-rain.mp4" type="video/mp4">
   </video>
@@ -28,7 +27,7 @@
     <img src="assets/Minecraft.gif" alt="Minecraft icon" class="game-icon">
     <h2 class="mc-title">Minecraft</h2>
     <p class="mc-desc">Build, survive, and explore endless worlds.</p>
-    <a href="minecraft-server.html" class="btn-minecraft">Join MC Server</a>
+    <a href="minecraft-server.html" class="btn-minecraft" data-audio="assets/Minecraft.mp3">Join MC Server</a>
   </section>
 
   <!-- Among Us -->
@@ -36,7 +35,7 @@
     <img src="assets/Amongus.gif" alt="Among Us icon" class="game-icon">
     <h2 class="au-title">Among Us</h2>
     <p class="au-desc">Find the impostor or deceive your crew.</p>
-    <a href="https://discord.gg/gpFaYwQCse" class="btn-amongus">Check Out Events!</a>
+    <a href="https://discord.gg/gpFaYwQCse" class="btn-amongus" data-audio="assets/Amongus.mp3" target="_blank" rel="noopener">Check Out Events!</a>
   </section>
 
   <!-- Roblox -->
@@ -44,12 +43,13 @@
     <img src="assets/Roblox.png" alt="Roblox icon" class="game-icon">
     <h2 class="rb-title">Roblox</h2>
     <p class="rb-desc">Play and create millions of unique experiences.</p>
-    <a href="https://discord.gg/gpFaYwQCse" class="btn-roblox">Add Your Connection</a>
+    <a href="https://discord.gg/gpFaYwQCse" class="btn-roblox" data-audio="assets/Roblox.mp3" target="_blank" rel="noopener">Add Your Connection</a>
   </section>
 
   <footer>
     <p>© 2025 Boxcutters+ Discord</p>
   </footer>
+
   <script src="script.js"></script>
 </body>
 </html>
