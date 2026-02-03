@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Boxcutters +</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;800&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    /*
+      Goals implemented:
+      - Smooth, consistent animations for modal open/close and tab switches
+      - No visible "resolution" or font-size changes when switching tabs
+      - Buttons have subtle color-fade animations
+      - Modal background opaque so underlying text doesn't bleed through
+      - Overall smoother, cleaner visual polish
+    */
+
+    :root{
+      --accent-1: #3fb0d9;
+      --accent-2: #1f6b9a;
+      --muted: #bcdbe8;
+      --bg-dark-1: #021421;
+      --bg-dark-2: #04314a;
+      --card-bg: rgba(255,255,255,0.02);
+      --glass-border: rgba(255,255,255,0.03);
+      --radius: 14px;
+      --shadow-strong: 0 30px 80px rgba(0,0,0,0.7);
+      --shadow-soft: 0 14px 40px rgba(31,107,154,0.12);
+      --ui-ease: cubic-bezier(.2,.9,.2,1);
+      --text-size: 15px; /* fixed base text size to avoid "resolution" changes */
+    }
+
+    /* Reset & base */
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      background: linear-gradient(120deg,var(--bg-dark-1), var(--bg-dark-2));
+      color:var(--muted);
+      -webkit-text-size-adjust:100%;
+      -ms-text-size-adjust:100%;
+      line-height:1.5;
+      font-size:var(--text-size);
+      padding:48px 6%;
+      min-height:100vh;
+    }
+
+    /* Animated background (slow, subtle) */
+    .bg {
+      position:fixed; inset:0; z-index:-4;
+      background: linear-gradient(120deg, #021421 0%, #04314a 35%, #064a66 65%, #021421 100%);
+      background-size: 240% 240%;
+      animation: bgShift 28s ease-in-out infinite;
+      filter: contrast(1.02) saturate(1.02);
+    }
+    @keyframes bgShift {
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    /* Page layout */
+    .page {
+      max-width:1100px;
+      margin:0 auto;
+      display:flex;
+      gap:28px;
+      align-items:flex-start;
+    }
+
+    /* Left content card */
+    .content {
+      flex:1 1 62%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.006));
+      border-radius:var(--radius);
+      padding:28px;
+      border:1px solid var(--glass-border);
+      box-shadow: var(--shadow-strong);
+      min-width:280px;
+      will-change: transform;
+    }
+
+    header.brand {
+      display:flex;
+      gap:14px;
+      align-items:center;
+      margin-bottom:12px;
+    }
+
+    /* animated logo (video) */
+    .logo-video {
+      width:68px;height:68px;border-radius:12px;overflow:hidden;
+      background: linear-gradient(135deg, rgba(63,176,217,0.06), rgba(31,107,154,0.03));
+      border:1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+      flex-shrink:0;
+      display:grid;place-items:center;
+    }
+    .logo-video video{ width:100%; height:100%; object-fit:cover; display:block; }
+
+    h1.title {
+      font-family: "Space Grotesk", "Inter", sans-serif;
+      font-size:28px;
+      margin:0;
+      color:var(--accent-1);
+      line-height:1;
+      font-weight:700;
+    }
+    .tagline { color:var(--muted); font-size:13px; margin-top:6px }
+
+    .card {
+      margin-top:12px;
+      padding:18px;
+      border-radius:12px;
+      background: var(--card-bg);
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    .welcome {
+      color:#dff6ff;
+      margin:0 0 12px 0;
+      font-size:var(--text-size);
+    }
+
+    .features {
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:8px 18px;
+      margin:12px 0 14px 0;
+      padding:0;
+      list-style:none;
+      font-size:var(--text-size);
+    }
+    .features li{
+      position:relative;
+      padding-left:22px;
+      border-radius:8px;
+      padding:8px 12px 8px 22px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.002), rgba(255,255,255,0.000));
+    }
+    .features li::before{
+      content:"☆︎";
+      position:absolute; left:8px; top:8px; color:var(--accent-1); font-size:14px;
+    }
+
+    /* Join button (subtle fade on hover) */
+    .cta {
+      display:inline-flex; align-items:center; gap:10px;
+      padding:11px 20px; border-radius:12px; font-weight:800; font-size:13px;
+      color:#021a22; text-decoration:none; border:0;
+      background: linear-gradient(90deg, rgba(63,176,217,0.95), rgba(31,107,154,0.95));
+      box-shadow: var(--shadow-soft);
+      transition: transform .18s var(--ui-ease), filter .28s var(--ui-ease), box-shadow .18s var(--ui-ease);
+      will-change: transform, filter;
+    }
+    .cta:hover{ transform:translateY(-3px); filter:brightness(1.06); box-shadow: 0 26px 56px rgba(31,107,154,0.18) }
+
+    /* Right side glass panel */
+    .side {
+      width:320px;
+      min-width:240px;
+      max-width:360px;
+    }
+    .glass {
+      border-radius:14px;
+      padding:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.006));
+      border:1px solid rgba(255,255,255,0.02);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.55);
+    }
+    .glass h3 { margin:0 0 8px 0; color:var(--accent-1); font-size:16px }
+    .glass p { margin:0 0 12px 0; color:var(--muted); font-size:var(--text-size) }
+
+    .gap-image {
+      width:100%; height:auto; border-radius:10px; display:block; margin:10px 0;
+      object-fit:cover; border:1px solid rgba(255,255,255,0.02); box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+    }
+
+    /* More button (improved look + subtle animated gradient on hover) */
+    .more-btn {
+      display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:12px;
+      background: linear-gradient(90deg, rgba(63,176,217,0.06), rgba(31,107,154,0.03));
+      color:var(--accent-1); border:1px solid rgba(63,176,217,0.12);
+      cursor:pointer; font-weight:700; font-size:13px; letter-spacing:0.3px;
+      transition: transform .18s var(--ui-ease), box-shadow .18s var(--ui-ease), background .28s var(--ui-ease);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+      will-change: transform, background;
+    }
+    .more-btn:hover{
+      transform:translateY(-4px);
+      box-shadow: 0 18px 48px rgba(0,0,0,0.55);
+      background: linear-gradient(90deg, rgba(63,176,217,0.12), rgba(31,107,154,0.06));
+    }
+    .more-btn .dot {
+      width:10px; height:10px; border-radius:50%;
+      background: linear-gradient(180deg,var(--accent-1),var(--accent-2));
+      box-shadow: 0 6px 18px rgba(63,176,217,0.18);
+      transition: transform .28s var(--ui-ease);
+    }
+
+    /* Modal backdrop & modal (opaque background to avoid bleed) */
+    .modal-backdrop {
+      position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+      background: rgba(0,0,0,0.55); z-index:60; padding:28px;
+      opacity:0; transition: opacity .28s var(--ui-ease);
+    }
+    .modal-backdrop.open { display:flex; opacity:1; }
+
+    .modal {
+      width:min(980px, 96%); max-height:86vh; overflow:auto; border-radius:14px;
+      background: linear-gradient(180deg, rgba(6,20,26,0.98), rgba(8,36,50,0.98)); /* opaque */
+      border:1px solid rgba(255,255,255,0.02);
+      box-shadow: var(--shadow-strong);
+      padding:20px; transform:translateY(18px) scale(.98); opacity:0;
+      transition: transform .32s var(--ui-ease), opacity .28s var(--ui-ease);
+      position:relative;
+      will-change: transform, opacity;
+    }
+    .modal.open { transform:translateY(0) scale(1); opacity:1; }
+    .modal.closing { transform:translateY(12px) scale(.98); opacity:0; transition: transform .22s ease, opacity .18s ease; }
+
+    .modal-close {
+      position:absolute; right:16px; top:12px; background:transparent; border:none; color:var(--muted);
+      font-weight:800; cursor:pointer; padding:8px; border-radius:8px;
+    }
+    .modal-close:hover{ background: rgba(255,255,255,0.02); transform:translateY(-3px) }
+
+    /* Tabs row */
+    .tabs { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+    .tab-btn {
+      padding:8px 12px; border-radius:10px; background:transparent; border:1px solid rgba(255,255,255,0.02);
+      color:var(--muted); cursor:pointer; font-weight:700; transition: background .18s var(--ui-ease), color .18s var(--ui-ease), transform .12s var(--ui-ease);
+    }
+    .tab-btn:hover{ transform:translateY(-3px) }
+    .tab-btn.active { background: linear-gradient(90deg, rgba(63,176,217,0.06), rgba(31,107,154,0.03)); color:var(--accent-1) }
+
+    /* Tab content container: fixed height to avoid layout jumps, panels stacked and cross-faded */
+    .tab-area {
+      position:relative;
+      min-height:220px; /* reserve space so switching doesn't change layout */
+    }
+    .tab-panel {
+      position:absolute; inset:0;
+      opacity:0; transform:translateY(8px);
+      transition: opacity .28s var(--ui-ease), transform .28s var(--ui-ease);
+      pointer-events:none;
+      will-change: opacity, transform;
+      color:var(--muted); font-size:var(--text-size); line-height:1.6;
+    }
+    .tab-panel.active {
+      opacity:1; transform:translateY(0); pointer-events:auto;
+    }
+
+    /* small code style */
+    code { background: rgba(255,255,255,0.02); padding:4px 6px; border-radius:6px; font-family:monospace; font-size:13px; color:var(--muted) }
+
+    /* Accessibility focus */
+    .tab-btn:focus, .more-btn:focus, .cta:focus, .modal-close:focus { outline:3px solid rgba(63,176,217,0.12); outline-offset:3px; }
+
+    /* Responsive */
+    @media (max-width:980px){
+      .page{flex-direction:column; gap:18px}
+      .side{width:100%}
+      .content{padding:20px}
+      .modal{padding:16px}
+      .tab-area{min-height:180px}
+    }
+    @media (max-width:520px){
+      h1.title{font-size:22px}
+      .logo-video{width:56px;height:56px}
+      .features{grid-template-columns:1fr}
+      .cta{width:100%;justify-content:center}
+    }
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+
+  <div class="page" role="main" aria-labelledby="site-title">
+    <section class="content" aria-labelledby="site-title">
+      <header class="brand">
+        <div class="logo-video" aria-hidden="false" aria-label="Boxcutters animated logo">
+          <video autoplay loop muted playsinline title="Boxcutters animated logo">
+            <source src="https://images-ext-1.discordapp.net/external/M-kblLyWrgztr0_nkRZTnpb6gjx-YqkmoMrfdw8tvLo/https/media.tenor.com/bIu82vP7haoAAAPo/omori-omori-tenor.mp4" type="video/mp4">
+            <span style="color:var(--muted);font-size:12px">Boxcutters +</span>
+          </video>
+        </div>
+
+        <div>
+          <h1 id="site-title" class="title">Boxcutters +</h1>
+          <div class="tagline">You demand, we provide.</div>
+        </div>
+      </header>
+
+      <div class="card" role="region" aria-labelledby="welcome-heading">
+        <h2 id="welcome-heading" style="font-weight:700;font-size:15px;color:var(--muted);margin:0 0 8px 0">Welcome to boxcutters +</h2>
+        <p class="welcome">Welcome to boxcutters +, a SFW community server where you can be yourself and make friends, memories and spend your time!</p>
+
+        <strong style="display:block;color:var(--muted);margin-bottom:8px">・What do we provide?</strong>
+        <ul class="features" aria-label="What we provide list">
+          <li>A loving community</li>
+          <li>Constant giveaways</li>
+          <li>Custom roles</li>
+          <li>Active staff team</li>
+          <li>Weekly/daily events</li>
+          <li>Custom voice channels</li>
+          <li>Game - Movie nights</li>
+          <li>Music bots</li>
+          <li>Fun community overall</li>
+        </ul>
+
+        <p style="margin:0 0 12px 0;color:var(--muted);font-weight:600">All this and more!</p>
+
+        <div class="cta-row">
+          <a class="cta" href="https://dcd.gg/boxcutters" target="_blank" rel="noopener noreferrer" aria-label="Join the server on Discord">Join the server</a>
+          <span class="muted-note" aria-hidden="true">Safe, moderated, and welcoming</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side" aria-hidden="false">
+      <div class="glass" role="complementary" aria-label="About boxcutters">
+        <h3>About</h3>
+        <p>Boxcutters + is a friendly, SFW community focused on connection and fun. We keep things smooth, simple, and respectful.</p>
+
+        <img
+          class="gap-image"
+          src="https://media.discordapp.net/attachments/1402411952151466006/1462870715714769074/IMG_2121.jpg?ex=69838a85&is=69823905&hm=c62a46ec510960430cd1d0095c1608fa146dbb3aad3e27a9482f280cf24b40ef&=&format=webp"
+          alt="Community snapshot"
+          loading="lazy"
+        />
+
+        <button class="more-btn" id="openMore" aria-haspopup="dialog" aria-controls="moreModal" aria-expanded="false">
+          <span class="dot" aria-hidden="true"></span>
+          More
+        </button>
+
+        <div class="stripes" aria-hidden="true" style="margin-top:12px;height:64px;border-radius:8px;background:linear-gradient(90deg, rgba(63,176,217,0.02), rgba(31,107,154,0.01));"></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Modal / More panel -->
+  <div class="modal-backdrop" id="moreModal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal" role="document" aria-labelledby="moreTitle" aria-describedby="moreDesc">
+      <button class="modal-close" id="closeMore" aria-label="Close">✕</button>
+      <h2 id="moreTitle" style="margin-bottom:6px;color:var(--accent-1)">More — Boxcutters +</h2>
+      <div id="moreDesc" style="margin-bottom:12px;color:var(--muted);font-size:13px">Explore rules, booster perks, about us, and support.</div>
+
+      <div class="tabs" role="tablist" aria-label="More sections">
+        <button class="tab-btn active" data-tab="rules" role="tab" aria-selected="true">Rules</button>
+        <button class="tab-btn" data-tab="boost" role="tab" aria-selected="false">Booster Perks</button>
+        <button class="tab-btn" data-tab="about" role="tab" aria-selected="false">About Us</button>
+        <button class="tab-btn" data-tab="support" role="tab" aria-selected="false">Support</button>
+      </div>
+
+      <!-- Tab area: panels stacked and cross-faded to avoid layout/font changes -->
+      <div class="tab-area" aria-live="polite">
+        <div class="tab-panel active" id="panel-rules" data-name="rules">
+          <h4>Rules</h4>
+          <p><strong>Approach others with respect, and avoid starting drama.</strong><br>We aim to create a safe and welcoming space. Respecting others is essential.</p>
+          <ul>
+            <li><strong>Do not spam, flood, self-promote, or disrupt conversations.</strong></li>
+            <li><strong>Do not post offensive, harmful, or NSFW content.</strong></li>
+            <li><strong>Do not troll, harass, or use excessive sarcasm.</strong></li>
+            <li><strong>Comply with Discord’s Terms of Service.</strong></li>
+            <li><strong>Do not discuss, promote, or share piracy.</strong></li>
+            <li><strong>Avoid spoilers for new games or media (2-week rule).</strong></li>
+            <li><strong>Do not promote or use cheats, hacks, or trainers.</strong></li>
+            <li><strong>No racism, hate speech, or discriminatory remarks.</strong></li>
+            <li><strong>Do not bypass slur filters or make offensive comments.</strong></li>
+            <li><strong>Respect staff decisions.</strong></li>
+            <li><strong>Protect privacy.</strong></li>
+            <li><strong>Use voice channels responsibly.</strong></li>
+            <li><strong>Keep discussions in the correct channels.</strong></li>
+            <li><strong>No impersonation.</strong></li>
+          </ul>
+        </div>
+
+        <div class="tab-panel" id="panel-boost" data-name="boost" hidden>
+          <h4>Booster Perks</h4>
+          <p><strong>Thank you for boosting!</strong><br>We try to do our best to make this community alive, welcoming, and fun. Boosting the server is much appreciated — it's just a click, but it helps a ton!</p>
+
+          <h4>What do I get by boosting the server?</h4>
+          <ul>
+            <li>☆︎ Automatically get pic/gif perms</li>
+            <li>☆︎ Access new username color</li>
+            <li>☆︎ Access booster-only giveaways</li>
+            <li>☆︎ Access booster chat and booster voice channel</li>
+            <li>☆︎ Make your own roles!</li>
+          </ul>
+
+          <h4>How do I make my custom role?</h4>
+          <p>Only server boosters can access this perk. Use these commands:</p>
+          <ul>
+            <li><code>,roleadd Role-Name HEXCOLOR [emoji]</code> — Use the - for spaces in your role name.</li>
+            <li><code>,rolegive @user</code> — Give yourself or your friends the role you made.</li>
+            <li><code>,roleremove @user</code> — Remove the role from a user you gave it to.</li>
+            <li><code>,roleremove delete</code> — Delete your role.</li>
+          </ul>
+        </div>
+
+        <div class="tab-panel" id="panel-about" data-name="about" hidden>
+          <h4>About Us</h4>
+          <p>Boxcutters + is a friendly, SFW community focused on connection and fun. We keep things smooth, simple, and respectful. Our goal is to provide a place where people can hang out, meet friends, and enjoy events together.</p>
+          <ul>
+            <li>Community-driven events (game nights, movie nights, giveaways)</li>
+            <li>Active moderation and clear rules</li>
+            <li>Custom roles, voice channels, and friendly staff</li>
+          </ul>
+        </div>
+
+        <div class="tab-panel" id="panel-support" data-name="support" hidden>
+          <h4>Support</h4>
+          <p><strong>What to do when you're facing an issue or problem?</strong></p>
+          <p>Go to the ticket channel and make a ticket. Our staff team will rush in to help you with whatever problem you're dealing with.</p>
+          <p>Support channel (Discord): <a href="https://discord.com/channels/1380928718532382741/1402679644196704398" target="_blank" rel="noopener noreferrer">Open support channel</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*
+      Smooth tab switching and modal animations.
+      - Panels are cross-faded (opacity + translate) to avoid font-size/resolution changes.
+      - Hidden panels use `hidden` attribute only after fade-out completes to keep layout stable.
+      - Modal open/close uses classes to animate; backdrop opacity is handled by CSS.
+    */
+
+    (function () {
+      const openBtn = document.getElementById('openMore');
+      const backdrop = document.getElementById('moreModal');
+      const modal = backdrop.querySelector('.modal');
+      const closeBtn = document.getElementById('closeMore');
+      const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
+      const panels = Array.from(document.querySelectorAll('.tab-panel'));
+      const dot = openBtn.querySelector('.dot');
+
+      // ensure consistent font rendering by forcing same computed font-size on modal content
+      // (we already set a fixed --text-size in CSS)
+
+      // helper: show modal
+      function openModal() {
+        openBtn.setAttribute('aria-expanded', 'true');
+        // small dot pulse
+        dot.style.transform = 'scale(1.25)';
+        setTimeout(() => dot.style.transform = '', 260);
+
+        backdrop.classList.add('open');
+        backdrop.setAttribute('aria-hidden', 'false');
+
+        // allow CSS to animate modal in
+        requestAnimationFrame(() => modal.classList.add('open'));
+
+        // ensure rules tab active
+        activateTab('rules', false);
+
+        // focus first tab after animation
+        setTimeout(() => {
+          const firstTab = document.querySelector('.tab-btn[data-tab="rules"]');
+          if (firstTab) firstTab.focus();
+        }, 260);
+      }
+
+      // helper: close modal with animation
+      function closeModal() {
+        openBtn.setAttribute('aria-expanded', 'false');
+
+        // animate modal closing
+        modal.classList.add('closing');
+        modal.classList.remove('open');
+
+        // small button feedback
+        openBtn.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-6px) scale(.995)' }, { transform: 'translateY(0)' }], { duration: 260, easing: 'cubic-bezier(.2,.9,.2,1)' });
+
+        setTimeout(() => {
+          modal.classList.remove('closing');
+          backdrop.classList.remove('open');
+          backdrop.setAttribute('aria-hidden', 'true');
+          openBtn.focus();
+        }, 260);
+      }
+
+      // activate a tab by name; animate panels cross-fade
+      function activateTab(name, animate = true) {
+        tabButtons.forEach(btn => {
+          const isActive = btn.getAttribute('data-tab') === name;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        panels.forEach(panel => {
+          const isTarget = panel.getAttribute('data-name') === name;
+          if (isTarget) {
+            // make visible before animating
+            panel.hidden = false;
+            // force reflow then add active class for transition
+            panel.classList.remove('active');
+            requestAnimationFrame(() => {
+              panel.classList.add('active');
+            });
+          } else {
+            // fade out then hide
+            panel.classList.remove('active');
+            // hide after transition duration
+            setTimeout(() => {
+              if (!panel.classList.contains('active')) panel.hidden = true;
+            }, 260);
+          }
+        });
+      }
+
+      // event listeners
+      openBtn.addEventListener('click', openModal);
+      closeBtn.addEventListener('click', closeModal);
+
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) closeModal();
+      });
+
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-tab');
+          // animate dot as feedback
+          dot.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.35)' }, { transform: 'scale(1)' }], { duration: 360, easing: 'cubic-bezier(.2,.9,.2,1)' });
+          activateTab(target);
+        });
+      });
+
+      // keyboard: Esc to close
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && backdrop.classList.contains('open')) closeModal();
+      });
+
+      // focus trap (simple): keep focus inside modal while open
+      document.addEventListener('focus', function (event) {
+        if (backdrop.classList.contains('open') && !backdrop.contains(event.target)) {
+          event.stopPropagation();
+          const firstTab = document.querySelector('.tab-btn.active') || document.querySelector('.tab-btn');
+          if (firstTab) firstTab.focus();
+        }
+      }, true);
+
+      // initialize: ensure only first panel visible
+      panels.forEach(p => {
+        if (p.getAttribute('data-name') !== 'rules') p.hidden = true;
+        else p.classList.add('active');
+      });
+    })();
+  </script>
+</body>
+</html>
